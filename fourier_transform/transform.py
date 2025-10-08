@@ -19,42 +19,30 @@ def aplicar_ifft_2d(espectro):
     return np.real(np.fft.ifft2(espectro))
 
 
-def filtro_gaussiano(n, sigma):
-    """
-    Genera un filtro gaussiano 1D de tamaño n y desviación estándar sigma.
-    """
-    x = np.linspace(-3*sigma, 3*sigma, n)
+def filtro_gaussiano(tam, sigma):
+    x = np.linspace(-3*sigma, 3*sigma, tam)
     filtro = norm.pdf(x, 0, sigma)
-    filtro /= np.sum(filtro)  # Normalizar para que la suma sea 1
+    filtro /= np.sum(filtro)
     return filtro
 
-
-def aplicar_filtro_gaussiano(espectro, sigma):
-    """
-    Aplica un filtro gaussiano sobre el espectro 1D convolucionando la magnitud.
-    """
-    n = len(espectro)
-    filtro = filtro_gaussiano(n, sigma)
+def aplicar_filtro_gaussiano(espectro, sigma=2, tam_filtro=11):
+    filtro = filtro_gaussiano(tam_filtro, sigma)
     espectro_abs = np.abs(espectro)
     espectro_filtrado = np.convolve(espectro_abs, filtro, mode='same')
     return espectro_filtrado
 
-
-def mostrar_espectro(espectro, titulo="Espectro de frecuencias", sigma=None):
-    n = espectro.shape[0]
+def mostrar_comparacion_filtro(espectro, sigma=2, tam_filtro=11):
+    n = len(espectro)
     freq = np.arange(n // 2)
+    magnitud_original = np.abs(espectro)[:n // 2]
+    magnitud_filtrada = aplicar_filtro_gaussiano(espectro, sigma, tam_filtro)[:n // 2]
 
-    if sigma is not None:
-        magnitud = aplicar_filtro_gaussiano(espectro, sigma)
-    else:
-        magnitud = np.abs(espectro)
-
-    magnitud = magnitud[:n // 2]
-
-    plt.figure(figsize=(10, 4))
-    plt.plot(freq, magnitud)
-    plt.title(titulo)
+    plt.figure(figsize=(10, 5))
+    plt.plot(freq, magnitud_original, label='Espectro Original', alpha=0.7)
+    plt.plot(freq, magnitud_filtrada, label='Espectro Filtrado - Gaussiano', linewidth=2)
+    plt.title('Comparación espectro original y filtrado')
     plt.xlabel('Frecuencia')
     plt.ylabel('Magnitud')
+    plt.legend()
     plt.grid(True)
     plt.show()
